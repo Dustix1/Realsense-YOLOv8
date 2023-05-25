@@ -1,13 +1,18 @@
+import torch
 import cv2
 import numpy as np
 import pyrealsense2 as rs
 from ultralytics import YOLO
 import time
 
+device = torch.device('cuda:0')
+
 pipeline = rs.pipeline()
 config = rs.config()
 config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
 config.enable_stream(rs.stream.depth, 1024, 768, rs.format.z16, 30)
+#config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
+#config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 15)
 
 pipeline.start(config)
 
@@ -42,11 +47,11 @@ try:
         depth_image = np.asanyarray(depth_frame.get_data())
 
         # Perform segmentation
-        seg_results = seg_model(color_image)
+        seg_results = seg_model(color_image, device=device)
         seg_color_image = seg_results[0].plot()
 
         # Perform pose estimation
-        pose_results = pose_model(color_image)
+        pose_results = pose_model(color_image, device=device)
         pose_color_image = pose_results[0].plot()
 
         # Create a combined output image

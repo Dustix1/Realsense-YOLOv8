@@ -15,7 +15,7 @@ config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
 pipeline.start(config)
 
 # Load YOLOv8 models
-seg_model = YOLO('yolov8x-seg.pt')  # load the segmentation model
+seg_model = YOLO('yolov8x.pt')  # load the segmentation model
 
 # Get class labels
 seg_classes = seg_model.module.names if hasattr(seg_model, 'module') else seg_model.names

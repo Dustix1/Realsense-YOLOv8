@@ -1,18 +1,21 @@
+import torch
 import cv2
 import numpy as np
 import pyrealsense2 as rs
 from ultralytics import YOLO
 import time
 
+device = torch.device('cuda:0')
+
 pipeline = rs.pipeline()
 config = rs.config()
 config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
-config.enable_stream(rs.stream.depth, 1024, 768, rs.format.z16, 30)
+#config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
 pipeline.start(config)
 
 # Load YOLOv8 models
-pose_model = YOLO('yolov8n-pose.pt')  # load the pose estimation model
+pose_model = YOLO('yolov8x-pose-p6.pt')  # load the pose estimation model
 
 # Get class labels
 pose_classes = pose_model.module.names if hasattr(pose_model, 'module') else pose_model.names
@@ -37,8 +40,10 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
 
         # Perform pose estimation
-        pose_results = pose_model(color_image)
+        pose_results = pose_model(color_image, device=device)
         pose_color_image = pose_results[0].plot()
+
+        print(pose_results[0])
 
         # Calculate FPS every second
         if time.time() - start_time >= 1:
@@ -47,11 +52,11 @@ try:
             frame_count = 0
 
         # Display FPS on the output image
-        cv2.putText(pose_color_image, f"FPS: {fps:.2f}", (10, 980), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
+        cv2.putText(pose_color_image, f"FPS: {fps:.2f}", (10, 680), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
 
         # Display the output image
-        cv2.imshow('Combined Output with Depth', pose_color_image)
-        cv2.resizeWindow('Combined Output with Depth', 1920, 1080)
+        cv2.imshow('Pose estimation', pose_color_image)
+        #cv2.resizeWindow('Combined Output with Depth', 1920, 1080)
 
         # Increment frame count
         frame_count += 1
